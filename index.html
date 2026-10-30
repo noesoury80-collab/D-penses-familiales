@@ -21,6 +21,10 @@ body {
 }
 .front { transform:rotateY(0deg) translateZ(1px); }
 .back { transform:rotateY(180deg) translateZ(1px); background:#f4edda; padding:14px 15px; overflow:hidden; }
+.front { visibility:visible; }
+.back { visibility:hidden; }
+.ticket.show-back .front { visibility:hidden; }
+.ticket.show-back .back { visibility:visible; z-index:2; backface-visibility:visible; -webkit-backface-visibility:visible; }
 h1 { font-size:22px; text-align:center; margin:5px 0; letter-spacing:1px; }
 .small { text-align:center; font-size:10px; color:#77705f; }
 .line { border-top:1px dashed #99917d; margin:15px 0; }
@@ -137,6 +141,10 @@ let startX = 0;
 let startRotation = 0;
 let dragging = false;
 let moved = false;
+function updateVisibleSide() {
+  const angle = ((rotation % 360) + 360) % 360;
+  ticket.classList.toggle("show-back", angle > 90 && angle < 270);
+}
 ticket.addEventListener("pointerdown", e => {
   dragging = true; moved = false; startX = e.clientX; startRotation = rotation;
   ticket.setPointerCapture(e.pointerId);
@@ -147,12 +155,14 @@ ticket.addEventListener("pointermove", e => {
   if (Math.abs(delta) > 5) moved = true;
   rotation = startRotation + delta * 0.8;
   ticket.style.transform = `rotateY(${rotation}deg)`;
+  updateVisibleSide();
 });
 ticket.addEventListener("pointerup", () => {
   if (!dragging) return;
   dragging = false;
   if (!moved) rotation = Math.round(rotation / 180) * 180 + 180;
   else rotation = Math.round(rotation / 180) * 180;
+  updateVisibleSide();
   ticket.style.transition = "transform 0.6s cubic-bezier(.2,.8,.2,1)";
   ticket.style.transform = `rotateY(${rotation}deg)`;
   setTimeout(() => ticket.style.transition = "", 650);
